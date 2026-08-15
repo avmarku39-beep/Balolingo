@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balolingo — Учи балолавский!</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-color: #ffffff;
+            color: #3c3c3c;
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Элементы главного экрана */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e5e5e5;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #58cc02;
+            margin: 0;
+        }
+
+        .lesson-path {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .lesson-node {
+            background-color: #58cc02;
+            color: white;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #58a700;
+            transition: transform 0.1s;
+        }
+
+        .lesson-node:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #58a700;
+        }
+
+        .lesson-node.locked {
+            background-color: #e5e5e5;
+            color: #afafaf;
+            box-shadow: 0 6px 0 #cecece;
+            cursor: not-allowed;
+        }
+        
+        .lesson-node.locked:active {
+            transform: none; /* Заблокированный урок не нажимается */
+        }
+
+        /* Элементы экрана урока */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #afafaf;
+            cursor: pointer;
+        }
+
+        .progress-bar-container {
+            flex-grow: 1;
+            height: 16px;
+            background-color: #e5e5e5;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #58cc02;
+            width: 0%;
+            transition: width 0.3s ease-in-out;
+            border-radius: 8px;
+        }
+
+        .step-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        /* Карточка изучения (Теория) */
+        .study-card {
+            background-color: #fff;
+            border: 2px solid #e5e5e5;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 0 #e5e5e5;
+        }
+
+        .study-word {
+            font-size: 40px;
+            color: #1cb0f6;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .study-translation {
+            font-size: 20px;
+            color: #777;
+        }
+
+        /* Варианты ответов (Практика) */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            border: 2px solid #e5e5e5;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            box-shadow: 0 2px 0 #e5e5e5;
+        }
+
+        .option:active {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #e5e5e5;
+        }
+
+        .option.selected {
+            border-color: #84d8ff;
+            background-color: #ddf4ff;
+            color: #1cb0f6;
+        }
+
+        .option.correct {
+            border-color: #58cc02;
+            background-color: #d7ffb8;
+            color: #58a700;
+            pointer-events: none; 
+        }
+
+        .option.wrong {
+            border-color: #ea2b2b;
+            background-color: #ffdfe0;
+            color: #ea2b2b;
+            pointer-events: none; 
+        }
+
+        /* Подвал урока */
+        .bottom-bar {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 2px solid #e5e5e5;
+        }
+
+        .btn {
+            width: 100%;
+            background-color: #e5e5e5;
+            color: #afafaf;
+            padding: 15px;
+            border-radius: 16px;
+            border: none;
+            font-size: 18px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: not-allowed;
+            box-shadow: 0 4px 0 #cecece;
+            transition: all 0.2s;
+        }
+
+        .btn.active {
+            background-color: #58cc02;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #58a700;
+        }
+
+        .btn.active:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #58a700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН 1: ГЛАВНОЕ МЕНЮ -->
+    <div id="home-screen" class="app-container">
+        <div class="header">
+            <h1>Balolingo</h1>
+            <div>Очки: <span id="score-display">0</span></div>
+        </div>
+        
+        <h2 style="text-align: center;">Основы балолавского</h2>
+        <!-- Путь генерируется динамически через JS -->
+        <div class="lesson-path" id="lesson-path"></div>
+    </div>
+
+    <!-- ЭКРАН 2: ИНТЕРФЕЙС УРОКА -->
+    <div id="lesson-screen" class="app-container hidden">
+        <div class="top-bar">
+            <button class="close-btn" onclick="exitLesson()">✖</button>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <div id="step-container" class="step-container"></div>
+
+        <div class="bottom-bar">
+            <button id="action-btn" class="btn">Продолжить</button>
+        </div>
+    </div>
+
+    <script>
+        // Добавили больше уроков для проверки разблокировки
+        const lessonData = [
+            {
+                id: 1,
+                steps: [
+                    { type: 'study', word: 'Selam', translation: 'Привет' },
+                    { type: 'quiz', question: 'Как сказать "Привет"?', options: ['Salam', 'Selam', 'Salo'], answer: 'Selam' },
+                    { type: 'study', word: 'Kam estace?', translation: 'Как дела?' },
+                    { type: 'quiz', question: 'Перевод фразы "Как дела?":', options: ['Kam estace?', 'Komo estas?', 'Kom estac?'], answer: 'Kam estace?' },
+                    { type: 'quiz', question: 'Переведите: Привет, как дела?', options: ['Selam, Kam estas?', 'Selam, Kam estace?', 'Salam, Kam estas?'], answer: 'Selam, Kam estace?' },
+					{ type: 'study', word: 'Perfešen', translation: 'Хорошо' },
+					{ type: 'quiz', question: 'Как будет "Хорошо"?', options: ['Perfešen', 'Perfesn', 'Perfeše'], answer: 'Perfešen' },
+                ]
+            },
+            {
+                id: 2,
+                steps: [
+                    { type: 'study', word: 'Ma', translation: 'Я' },
+                    { type: 'study', word: 'Russa', translation: 'Россия' },
+					{ type: 'study', word: 'Ma as de...', translation: 'Я из...' },
+                    { type: 'quiz', question: 'Перевод фразы "Я из России":', options: ['Ma es de Russa', 'Me as de Russa', 'Ma as de Russa', 'Ma as de Russan'], answer: 'Ma as de Russa' },
+					{ type: 'study', word: 'Balowel', translation: 'Балолавия' },
+                    { type: 'quiz', question: 'Как сказать "Балолавия"?', options: ['Balowel', 'Balowal', 'Balowe'], answer: 'Balowel' },
+					{ type: 'quiz', question: 'Как перевести "Я из Балолавии"?', options: ['Ma as de Balowel', 'Ma es Balowel', 'Ma as de Balowe'], answer: 'Ma as de Balowel' },
+					{ type: 'study', word: 'Ves ere tu de?', translation: 'Откуда ты?' },
+					{ type: 'quiz', question: 'Как перевести "Откуда ты"?', options: ['Wes ere de tu?', 'Ves ere tu de?', 'Ves ere de tu?'], answer: 'Ves ere tu de?' },
+                ]
+            },
+            {
+                id: 3,
+                steps: [
+                    { type: 'study', word: 'Grace', translation: 'Спасибо' },
+					{ type: 'study', word: 'Çiçi', translation: 'Пока' },
+                    { type: 'quiz', question: 'Переведите "Спасибо"', options: ['Grase', 'Graci', 'Grace'], answer: 'Grace' },
+                    { type: 'quiz', question: 'Спасибо, пока!', options: ['Graces, çiçi!', 'Grace, cici!', 'Grace, çiçi!'], answer: 'Grace, çiçi!' },
+					{ type: 'quiz', question: 'Как будет "Хорошо, спасибо!"', options: ['Perfesen, grace!', 'Perfešen, grase!', 'Perfešen, grace!'], answer: 'Perfešen, grace!' },
+                ]
+            }
+        ];
+
+        // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
+        let lessonProgress = {}; 
+        let maxUnlockedLesson = 0; // Индекс максимально доступного урока (0 - первый урок)
+        let currentLessonIndex = null;
+        let currentStepIndex = 0;
+        let currentLesson = null;
+        let selectedOption = null;
+        let isAnswerChecked = false;
+        let totalScore = 0;
+
+        const homeScreen = document.getElementById('home-screen');
+        const lessonScreen = document.getElementById('lesson-screen');
+        const lessonPathContainer = document.getElementById('lesson-path');
+        const stepContainer = document.getElementById('step-container');
+        const actionBtn = document.getElementById('action-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreDisplay = document.getElementById('score-display');
+
+        // Инициализация при загрузке страницы
+        renderHome();
+
+        // Отрисовка главного меню со списком уроков
+        function renderHome() {
+            lessonPathContainer.innerHTML = '';
+            
+            lessonData.forEach((lesson, index) => {
+                const isLocked = index > maxUnlockedLesson;
+                
+                const node = document.createElement('div');
+                node.className = `lesson-node ${isLocked ? 'locked' : ''}`;
+                node.textContent = index + 1;
+                
+                // Клик работает только если урок разблокирован
+                if (!isLocked) {
+                    node.onclick = () => startLesson(index);
+                }
+                
+                lessonPathContainer.appendChild(node);
+            });
+            
+            scoreDisplay.textContent = totalScore;
+        }
+
+        function startLesson(lessonIndex) {
+            currentLessonIndex = lessonIndex;
+            currentLesson = lessonData[lessonIndex];
+            
+            if (lessonProgress[lessonIndex] === undefined || lessonProgress[lessonIndex] >= currentLesson.steps.length) {
+                lessonProgress[lessonIndex] = 0;
+            }
+            currentStepIndex = lessonProgress[lessonIndex];
+            
+            homeScreen.classList.add('hidden');
+            lessonScreen.classList.remove('hidden');
+            
+            renderStep();
+        }
+
+        function exitLesson() {
+            lessonProgress[currentLessonIndex] = currentStepIndex;
+            
+            homeScreen.classList.remove('hidden');
+            lessonScreen.classList.add('hidden');
+            renderHome(); // Обновляем главное меню при выходе
+        }
+
+        function renderStep() {
+            stepContainer.innerHTML = '';
+            selectedOption = null;
+            isAnswerChecked = false; 
+            
+            const progress = (currentStepIndex / currentLesson.steps.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            if (currentStepIndex >= currentLesson.steps.length) {
+                finishLesson();
+                return;
+            }
+
+            const step = currentLesson.steps[currentStepIndex];
+
+            if (step.type === 'study') {
+                renderStudyStep(step);
+            } else if (step.type === 'quiz') {
+                renderQuizStep(step);
+            }
+        }
+
+        function renderStudyStep(step) {
+            stepContainer.innerHTML = `
+                <div class="step-title">Новое слово</div>
+                <div class="study-card">
+                    <div class="study-word">${step.word}</div>
+                    <div class="study-translation">${step.translation}</div>
+                </div>
+            `;
+            
+            actionBtn.textContent = 'Понятно';
+            actionBtn.className = 'btn active';
+            actionBtn.onclick = nextStep;
+        }
+
+        function renderQuizStep(step) {
+            stepContainer.innerHTML = `
+                <div class="step-title">${step.question}</div>
+                <div class="options-grid" id="options-container">
+                    ${step.options.map(opt => `<div class="option" onclick="selectOption(this, '${opt}')">${opt}</div>`).join('')}
+                </div>
+            `;
+
+            actionBtn.textContent = 'Проверить';
+            actionBtn.className = 'btn';
+            actionBtn.onclick = null;
+        }
+
+        function selectOption(element, optionText) {
+            if (isAnswerChecked) return;
+
+            const allOptions = document.querySelectorAll('.option');
+            allOptions.forEach(opt => {
+                if (!opt.classList.contains('wrong')) {
+                    opt.classList.remove('selected');
+                }
+            });
+
+            element.classList.add('selected');
+            selectedOption = optionText;
+
+            actionBtn.textContent = 'Проверить';
+            actionBtn.className = 'btn active';
+            actionBtn.onclick = checkAnswer;
+        }
+
+        function checkAnswer() {
+            if (!selectedOption) return;
+
+            const step = currentLesson.steps[currentStepIndex];
+            const allOptions = document.querySelectorAll('.option');
+            let selectedElement = Array.from(allOptions).find(opt => opt.classList.contains('selected'));
+
+            if (selectedOption === step.answer) {
+                isAnswerChecked = true;
+                selectedElement.classList.remove('selected');
+                selectedElement.classList.add('correct');
+                
+                actionBtn.textContent = 'Далее';
+                actionBtn.className = 'btn active';
+                actionBtn.onclick = nextStep;
+            } else {
+                selectedElement.classList.remove('selected');
+                selectedElement.classList.add('wrong');
+                selectedOption = null; 
+                
+                actionBtn.textContent = 'Проверить';
+                actionBtn.className = 'btn';
+                actionBtn.onclick = null;
+            }
+        }
+
+        function nextStep() {
+            currentStepIndex++;
+            lessonProgress[currentLessonIndex] = currentStepIndex; 
+            renderStep();
+        }
+
+        function finishLesson() {
+            stepContainer.innerHTML = `
+                <div class="study-card" style="margin-top: 50px;">
+                    <div class="study-word">🎉 Урок пройден!</div>
+                    <div class="study-translation">Вы отлично справились.</div>
+                </div>
+            `;
+            
+            progressBar.style.width = '100%';
+            
+            actionBtn.textContent = 'Вернуться в меню';
+            actionBtn.className = 'btn active';
+            actionBtn.onclick = () => {
+                // Разблокируем следующий урок, если проходим самый "новый" из доступных
+                if (currentLessonIndex === maxUnlockedLesson && maxUnlockedLesson < lessonData.length - 1) {
+                    maxUnlockedLesson++;
+                }
+                
+                // Сбрасываем прогресс этого урока, чтобы его можно было пройти заново (как в Duolingo)
+                lessonProgress[currentLessonIndex] = 0;
+                
+                totalScore += 10;
+                exitLesson();
+            };
+        }
+    </script>
+</body>
+</html>
