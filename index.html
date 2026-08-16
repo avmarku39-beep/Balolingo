@@ -262,7 +262,6 @@
     </div>
 
     <script>
-        // Добавили больше уроков для проверки разблокировки
         const lessonData = [
             {
                 id: 1,
@@ -304,7 +303,7 @@
 
         // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
         let lessonProgress = {}; 
-        let maxUnlockedLesson = 0; // Индекс максимально доступного урока (0 - первый урок)
+        let maxUnlockedLesson = 0; 
         let currentLessonIndex = null;
         let currentStepIndex = 0;
         let currentLesson = null;
@@ -312,6 +311,11 @@
         let isAnswerChecked = false;
         let totalScore = 0;
 
+        // --- ЗВУКИ ---
+        const rightSound = new Audio('right.mp3');
+        const wrongSound = new Audio('wrong.mp3');
+
+        // --- UI ЭЛЕМЕНТЫ ---
         const homeScreen = document.getElementById('home-screen');
         const lessonScreen = document.getElementById('lesson-screen');
         const lessonPathContainer = document.getElementById('lesson-path');
@@ -320,10 +324,31 @@
         const progressBar = document.getElementById('progress-bar');
         const scoreDisplay = document.getElementById('score-display');
 
+        // --- ЛОГИКА СОХРАНЕНИЯ ПРОГРЕССА ---
+        function loadData() {
+            const savedData = localStorage.getItem('balolingoProgress');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                lessonProgress = parsed.lessonProgress || {};
+                maxUnlockedLesson = parsed.maxUnlockedLesson || 0;
+                totalScore = parsed.totalScore || 0;
+            }
+        }
+
+        function saveData() {
+            const dataToSave = {
+                lessonProgress: lessonProgress,
+                maxUnlockedLesson: maxUnlockedLesson,
+                totalScore: totalScore
+            };
+            localStorage.setItem('balolingoProgress', JSON.stringify(dataToSave));
+        }
+
         // Инициализация при загрузке страницы
+        loadData();
         renderHome();
 
-        // Отрисовка главного меню со списком уроков
+        // Отрисовка главного меню
         function renderHome() {
             lessonPathContainer.innerHTML = '';
             
@@ -334,7 +359,6 @@
                 node.className = `lesson-node ${isLocked ? 'locked' : ''}`;
                 node.textContent = index + 1;
                 
-                // Клик работает только если урок разблокирован
                 if (!isLocked) {
                     node.onclick = () => startLesson(index);
                 }
@@ -351,6 +375,7 @@
             
             if (lessonProgress[lessonIndex] === undefined || lessonProgress[lessonIndex] >= currentLesson.steps.length) {
                 lessonProgress[lessonIndex] = 0;
+                saveData();
             }
             currentStepIndex = lessonProgress[lessonIndex];
             
@@ -362,10 +387,11 @@
 
         function exitLesson() {
             lessonProgress[currentLessonIndex] = currentStepIndex;
+            saveData();
             
             homeScreen.classList.remove('hidden');
             lessonScreen.classList.add('hidden');
-            renderHome(); // Обновляем главное меню при выходе
+            renderHome(); 
         }
 
         function renderStep() {
@@ -443,6 +469,10 @@
             let selectedElement = Array.from(allOptions).find(opt => opt.classList.contains('selected'));
 
             if (selectedOption === step.answer) {
+                // Воспроизведение звука при правильном ответе
+                rightSound.currentTime = 0; 
+                rightSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
+
                 isAnswerChecked = true;
                 selectedElement.classList.remove('selected');
                 selectedElement.classList.add('correct');
@@ -451,6 +481,10 @@
                 actionBtn.className = 'btn active';
                 actionBtn.onclick = nextStep;
             } else {
+                // Воспроизведение звука при неверном ответе
+                wrongSound.currentTime = 0;
+                wrongSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
+
                 selectedElement.classList.remove('selected');
                 selectedElement.classList.add('wrong');
                 selectedOption = null; 
@@ -464,6 +498,7 @@
         function nextStep() {
             currentStepIndex++;
             lessonProgress[currentLessonIndex] = currentStepIndex; 
+            saveData(); // Сохраняем прогресс после каждого шага
             renderStep();
         }
 
@@ -480,15 +515,14 @@
             actionBtn.textContent = 'Вернуться в меню';
             actionBtn.className = 'btn active';
             actionBtn.onclick = () => {
-                // Разблокируем следующий урок, если проходим самый "новый" из доступных
                 if (currentLessonIndex === maxUnlockedLesson && maxUnlockedLesson < lessonData.length - 1) {
                     maxUnlockedLesson++;
                 }
                 
-                // Сбрасываем прогресс этого урока, чтобы его можно было пройти заново (как в Duolingo)
                 lessonProgress[currentLessonIndex] = 0;
-                
                 totalScore += 10;
+                
+                saveData(); // Сохраняем итоговые очки и открытые уровни
                 exitLesson();
             };
         }
