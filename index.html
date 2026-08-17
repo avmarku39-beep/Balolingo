@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balolingo</title>
+    <title>Balolingo — Учи балолавский!</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
 
@@ -196,6 +196,48 @@
             pointer-events: none; 
         }
 
+        /* Элементы выпадающего списка (Dropdown) */
+        .dropdown-sentence {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-top: 40px;
+            line-height: 2;
+        }
+
+        select#dropdown-select {
+            font-size: 20px;
+            font-weight: 700;
+            padding: 5px 15px;
+            border-radius: 8px;
+            border: 2px solid #e5e5e5;
+            background-color: #fff;
+            color: #1cb0f6;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            text-align: center;
+        }
+
+        select#dropdown-select:focus {
+            border-color: #84d8ff;
+            background-color: #ddf4ff;
+        }
+
+        select#dropdown-select.correct {
+            border-color: #58cc02;
+            background-color: #d7ffb8;
+            color: #58a700;
+            pointer-events: none;
+        }
+
+        select#dropdown-select.wrong {
+            border-color: #ea2b2b;
+            background-color: #ffdfe0;
+            color: #ea2b2b;
+        }
+
         /* Подвал урока */
         .bottom-bar {
             margin-top: auto;
@@ -329,8 +371,18 @@
                 id: 6,
                 steps: [
                     { type: 'study', word: 'Артикли un и una', translation: 'Употребляются с существительными, если упоминается конкретный предмет' },
-					{ type: 'study', word: 'Un', translation: 'Ариткль мужского рода', word: 'Una', translation: 'Ариткль женского рода рода'},
-					{ type: 'study', word: 'Существительные с окончаниями a, e, i', translation: 'Женский род', word: 'Остальные случаи', translation: 'Мужской род'},
+					{ type: 'study', word: 'Un', translation: 'Ариткль мужского рода'},
+					{ type: 'study', word: 'Una', translation: 'Ариткль женского рода'},
+					{ type: 'study', word: 'Существительные с окончаниями a, e, i', translation: 'Женский род'}, 
+					{ type: 'study', word: 'Остальные случаи', translation: 'Мужской род'},
+					{ type: 'quiz', question: 'Переведите "Салат, пожалуйста"', options: ['Un salade, porfavor', 'Un salad, por favor', 'Una salade, por favor', 'Una salade, por favore'], answer: 'Una salade, por favor'},
+					{ type: 'quiz', question: 'Переведите "Пиццу, пожалуйста"', options: ['Un picca, porfavor', 'Un picca, por favor', 'Una pica, por favor', 'Una picca, por favor'], answer: 'Una picca, por favor'},
+					// НОВОЕ ЗАДАНИЕ С ВЫПАДАЮЩИМ СПИСКОМ
+                    { type: 'dropdown', question: 'Заполните пропуск', sentence: '___ coffee, por favor.', options: ['un', 'una'], answer: 'una' },
+					{ type: 'dropdown', question: 'Заполните пропуск', sentence: '___ ça, por favor.', options: ['un', 'una'], answer: 'una' },
+					{ type: 'dropdown', question: 'Заполните пропуск', sentence: '___ su, por favor.', options: ['un', 'una'], answer: 'un' },
+					{ type: 'dropdown', question: 'Заполните пропуск', sentence: '___ šelado, por favor.', options: ['un', 'una'], answer: 'un' },
+					{ type: 'dropdown', question: 'Заполните пропуск', sentence: '___ taufa, por favor.', options: ['un', 'una'], answer: 'una' },
                 ]
             },
         ];
@@ -447,6 +499,8 @@
                 renderStudyStep(step);
             } else if (step.type === 'quiz') {
                 renderQuizStep(step);
+            } else if (step.type === 'dropdown') {
+                renderDropdownStep(step);
             }
         }
 
@@ -477,6 +531,28 @@
             actionBtn.onclick = null;
         }
 
+        function renderDropdownStep(step) {
+            // Разбиваем предложение по знаку "___", чтобы вставить выпадающий список
+            const sentenceParts = step.sentence.split('___');
+            const selectHTML = `
+                <select id="dropdown-select" onchange="selectDropdownOption(this.value)">
+                    <option value="" disabled selected>...</option>
+                    ${step.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                </select>
+            `;
+
+            stepContainer.innerHTML = `
+                <div class="step-title">${step.question}</div>
+                <div class="dropdown-sentence">
+                    ${sentenceParts[0]} ${selectHTML} ${sentenceParts[1] || ''}
+                </div>
+            `;
+
+            actionBtn.textContent = 'Проверить';
+            actionBtn.className = 'btn';
+            actionBtn.onclick = null;
+        }
+
         function selectOption(element, optionText) {
             if (isAnswerChecked) return;
 
@@ -495,15 +571,57 @@
             actionBtn.onclick = checkAnswer;
         }
 
+        function selectDropdownOption(value) {
+            if (isAnswerChecked) return;
+            
+            const selectElement = document.getElementById('dropdown-select');
+            selectElement.classList.remove('wrong'); // Убираем красную подсветку при новом выборе
+
+            selectedOption = value;
+            actionBtn.textContent = 'Проверить';
+            actionBtn.className = 'btn active';
+            actionBtn.onclick = checkAnswer;
+        }
+
         function checkAnswer() {
             if (!selectedOption) return;
 
             const step = currentLesson.steps[currentStepIndex];
+
+            // Проверка для выпадающего списка
+            if (step.type === 'dropdown') {
+                const selectElement = document.getElementById('dropdown-select');
+
+                if (selectedOption === step.answer) {
+                    rightSound.currentTime = 0; 
+                    rightSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
+
+                    isAnswerChecked = true;
+                    selectElement.classList.add('correct');
+                    
+                    actionBtn.textContent = 'Далее';
+                    actionBtn.className = 'btn active';
+                    actionBtn.onclick = nextStep;
+                } else {
+                    wrongSound.currentTime = 0;
+                    wrongSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
+
+                    selectElement.classList.add('wrong');
+                    selectedOption = null; 
+                    selectElement.value = ""; // Сбрасываем значение, чтобы пользователь выбрал заново
+                    
+                    actionBtn.textContent = 'Проверить';
+                    actionBtn.className = 'btn';
+                    actionBtn.onclick = null;
+                }
+                return; // Выходим из функции, так как логика dropdown обработана
+            }
+
+            // Стандартная проверка для обычных тестов (quiz)
             const allOptions = document.querySelectorAll('.option');
             let selectedElement = Array.from(allOptions).find(opt => opt.classList.contains('selected'));
 
             if (selectedOption === step.answer) {
-                // Воспроизведение звука при правильном ответе
                 rightSound.currentTime = 0; 
                 rightSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
 
@@ -515,7 +633,6 @@
                 actionBtn.className = 'btn active';
                 actionBtn.onclick = nextStep;
             } else {
-                // Воспроизведение звука при неверном ответе
                 wrongSound.currentTime = 0;
                 wrongSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
 
@@ -532,7 +649,7 @@
         function nextStep() {
             currentStepIndex++;
             lessonProgress[currentLessonIndex] = currentStepIndex; 
-            saveData(); // Сохраняем прогресс после каждого шага
+            saveData(); 
             renderStep();
         }
 
@@ -556,7 +673,7 @@
                 lessonProgress[currentLessonIndex] = 0;
                 totalScore += 10;
                 
-                saveData(); // Сохраняем итоговые очки и открытые уровни
+                saveData(); 
                 exitLesson();
             };
         }
