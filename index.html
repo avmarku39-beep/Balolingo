@@ -320,15 +320,14 @@
             {
                 id: 2,
                 steps: [
-                    { type: 'study', word: 'Ma', translation: 'Я' },
-                    { type: 'study', word: 'Russa', translation: 'Россия' },
-					{ type: 'study', word: 'Ma as de...', translation: 'Я из...' },
-                    { type: 'quiz', question: 'Перевод фразы "Я из России":', options: ['Ma es de Russa', 'Me as de Russa', 'Ma as de Russa', 'Ma as de Russan'], answer: 'Ma as de Russa' },
-					{ type: 'study', word: 'Balowel', translation: 'Балолавия' },
-                    { type: 'quiz', question: 'Как сказать "Балолавия"?', options: ['Balowel', 'Balowal', 'Balowe'], answer: 'Balowel' },
-					{ type: 'quiz', question: 'Как перевести "Я из Балолавии"?', options: ['Ma as de Balowel', 'Ma es Balowel', 'Ma as de Balowe'], answer: 'Ma as de Balowel' },
-					{ type: 'study', word: 'Ves ere tu de?', translation: 'Откуда ты?' },
-					{ type: 'quiz', question: 'Как перевести "Откуда ты"?', options: ['Wes ere de tu?', 'Ves ere tu de?', 'Ves ere de tu?'], answer: 'Ves ere tu de?' },
+                    { type: 'study', word: 'Alym bahar', translation: 'Доброе утро' },
+                    { type: 'study', word: 'Alym tage', translation: 'Добрый день' },
+                    { type: 'quiz', question: 'Перевод фразы "Доброе утро":', options: ['Alym bakhar', 'Alym bahar', 'Alym tage', 'Ma as de Russan'], answer: 'Alym bahar' },
+					{ type: 'quiz', question: 'Перевод фразы "Добрый день":', options: ['Alym tages', 'Alym tage', 'Alym taga'], answer: 'Alym tage' },
+					{ type: 'study', word: 'Alym meher', translation: 'Добрый вечер' },
+					{ type: 'study', word: 'Alym noçe', translation: 'Доброй ночи' },
+                    { type: 'quiz', question: 'Как сказать "Добрый вечер"?', options: ['Alym meher', 'Alym meker', 'Alym tage'], answer: 'Alym meher' },
+					{ type: 'quiz', question: 'Как перевести "Доброй ночи"?', options: ['Alym noçe', 'Alym noce', 'Alym nohe'], answer: 'Alym noçe' },
                 ]
             },
             {
@@ -395,6 +394,17 @@
 					{ type: 'study', word: 'Potat 🥔', translation: 'Картофель' },
 					{ type: 'quiz', question: 'Как сказать "Картофель"?', options: ['Potato', 'Potate', 'Potat'], answer: 'Potat' },
 					{ type: 'quiz', question: 'Как сказать "Мясо"?', options: ['Mate', 'Matt', 'Matte'], answer: 'Matte' },
+                ]
+            },
+			{
+                id: 8,
+                steps: [
+                    { type: 'study', word: 'Приветствия', translation: 'Повторение' },
+                    { type: 'dropdown', question: 'Выберите подходящее слово:', sentence: '___ , Maria!', options: ['Ça', 'Selam', 'Su'], answer: 'Selam' },
+					{ type: 'dropdown', question: 'Выберите подходящее слово:', sentence: 'Kam ___ ?', options: ['Estas', 'Estase', 'Estace'], answer: 'Estace' },
+					{ type: 'quiz', question: 'Как переводится "Alym meher"?', options: ['Добрый день', 'Добрый вечер', 'Доброй ночи'], answer: 'Добрый вечер' },
+					{ type: 'quiz', question: 'Как переводится "Alym bahar"?', options: ['Доброе утро', 'Добрый день', 'Добрый вечер'], answer: 'Доброе утро' },
+					{ type: 'quiz', question: 'Kam estace?', options: ['Perfesen', 'Perfešen', 'Çiçi', 'Grace'], answer: 'Perfešen' },
                 ]
             },
         ];
