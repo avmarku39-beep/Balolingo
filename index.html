@@ -238,6 +238,38 @@
             color: #ea2b2b;
         }
 
+        /* Поле ручного ввода (Input) */
+        input.text-input {
+            width: 100%;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #e5e5e5;
+            outline: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #3c3c3c;
+            transition: all 0.2s;
+        }
+
+        input.text-input:focus {
+            border-color: #84d8ff;
+            background-color: #ddf4ff;
+        }
+
+        input.text-input.correct {
+            border-color: #58cc02;
+            background-color: #d7ffb8;
+            color: #58a700;
+        }
+
+        input.text-input.wrong {
+            border-color: #ea2b2b;
+            background-color: #ffdfe0;
+            color: #ea2b2b;
+        }
+
         /* Подвал урока */
         .bottom-bar {
             margin-top: auto;
@@ -282,8 +314,7 @@
             <div>Очки: <span id="score-display">0</span></div>
         </div>
         
-        <h2 style="text-align: center;">Основы балолавского</h2>
-        <!-- Путь генерируется динамически через JS -->
+        <!-- Путь генерируется динамически через JS вместе с заголовками разделов -->
         <div class="lesson-path" id="lesson-path"></div>
     </div>
 
@@ -307,6 +338,7 @@
         const lessonData = [
             {
                 id: 1,
+                sectionTitle: 'Базовые фразы', // Заголовок перед 1-м уроком
                 steps: [
                     { type: 'study', word: 'Selam', translation: 'Привет' },
                     { type: 'quiz', question: 'Как сказать "Привет"?', options: ['Salam', 'Selam', 'Salo'], answer: 'Selam' },
@@ -342,6 +374,7 @@
             },
 			{
                 id: 4,
+                sectionTitle: 'Еда и заказ еды', // Заголовок перед 4-м уроком
                 steps: [
                     { type: 'study', word: 'Por favor', translation: 'Пожалуйста' },
 					{ type: 'study', word: 'Ça', translation: 'Чай' },
@@ -376,7 +409,6 @@
 					{ type: 'study', word: 'Остальные случаи', translation: 'Мужской род'},
 					{ type: 'quiz', question: 'Переведите "Салат, пожалуйста"', options: ['Un salade, porfavor', 'Un salad, por favor', 'Una salade, por favor', 'Una salade, por favore'], answer: 'Una salade, por favor'},
 					{ type: 'quiz', question: 'Переведите "Пиццу, пожалуйста"', options: ['Un picca, porfavor', 'Un picca, por favor', 'Una pica, por favor', 'Una picca, por favor'], answer: 'Una picca, por favor'},
-					// НОВОЕ ЗАДАНИЕ С ВЫПАДАЮЩИМ СПИСКОМ
                     { type: 'dropdown', question: 'Заполните пропуск', sentence: '___ coffee, por favor.', options: ['un', 'una'], answer: 'una' },
 					{ type: 'dropdown', question: 'Заполните пропуск', sentence: '___ ça, por favor.', options: ['un', 'una'], answer: 'una' },
 					{ type: 'dropdown', question: 'Заполните пропуск', sentence: '___ su, por favor.', options: ['un', 'una'], answer: 'un' },
@@ -416,6 +448,8 @@
 					{ type: 'quiz', question: 'Как будет "Картофель"?', options: ['Matte', 'Potat', 'Taufa'], answer: 'Potat' },
 					{ type: 'quiz', question: '"Taufa" – это:', options: ['Мороженое', 'Мясо', 'Пирожное'], answer: 'Пирожное' },
 					{ type: 'dropdown', question: 'Выберите подходящее словосочетание:', sentence: '___ una salade', options: ['Ma quere', 'Quere', 'Ma queres'], answer: 'Ma quere' },
+                    // НОВОЕ ЗАДАНИЕ С ПОЛЕМ ВВОДА
+                    { type: 'input', question: 'Напишите на балолавском: "Я хочу воду"', answer: 'Ma quere un su' },
                 ]
             },
         ];
@@ -472,6 +506,16 @@
             lessonPathContainer.innerHTML = '';
             
             lessonData.forEach((lesson, index) => {
+                // Добавляем заголовок раздела, если он указан в данных урока
+                if (lesson.sectionTitle) {
+                    const title = document.createElement('h2');
+                    title.style.textAlign = 'center';
+                    title.style.width = '100%';
+                    title.style.margin = '20px 0 10px 0';
+                    title.textContent = lesson.sectionTitle;
+                    lessonPathContainer.appendChild(title);
+                }
+
                 const isLocked = index > maxUnlockedLesson;
                 
                 const node = document.createElement('div');
@@ -534,6 +578,8 @@
                 renderQuizStep(step);
             } else if (step.type === 'dropdown') {
                 renderDropdownStep(step);
+            } else if (step.type === 'input') {
+                renderInputStep(step);
             }
         }
 
@@ -565,7 +611,6 @@
         }
 
         function renderDropdownStep(step) {
-            // Разбиваем предложение по знаку "___", чтобы вставить выпадающий список
             const sentenceParts = step.sentence.split('___');
             const selectHTML = `
                 <select id="dropdown-select" onchange="selectDropdownOption(this.value)">
@@ -579,6 +624,17 @@
                 <div class="dropdown-sentence">
                     ${sentenceParts[0]} ${selectHTML} ${sentenceParts[1] || ''}
                 </div>
+            `;
+
+            actionBtn.textContent = 'Проверить';
+            actionBtn.className = 'btn';
+            actionBtn.onclick = null;
+        }
+
+        function renderInputStep(step) {
+            stepContainer.innerHTML = `
+                <div class="step-title">${step.question}</div>
+                <input type="text" id="text-input" class="text-input" placeholder="Введите ответ..." oninput="handleInput(this.value)">
             `;
 
             actionBtn.textContent = 'Проверить';
@@ -608,12 +664,29 @@
             if (isAnswerChecked) return;
             
             const selectElement = document.getElementById('dropdown-select');
-            selectElement.classList.remove('wrong'); // Убираем красную подсветку при новом выборе
+            selectElement.classList.remove('wrong'); 
 
             selectedOption = value;
             actionBtn.textContent = 'Проверить';
             actionBtn.className = 'btn active';
             actionBtn.onclick = checkAnswer;
+        }
+
+        function handleInput(value) {
+            if (isAnswerChecked) return;
+            
+            const inputElement = document.getElementById('text-input');
+            inputElement.classList.remove('wrong'); 
+            
+            selectedOption = value.trim();
+
+            if (selectedOption.length > 0) {
+                actionBtn.className = 'btn active';
+                actionBtn.onclick = checkAnswer;
+            } else {
+                actionBtn.className = 'btn';
+                actionBtn.onclick = null;
+            }
         }
 
         function checkAnswer() {
@@ -641,13 +714,42 @@
 
                     selectElement.classList.add('wrong');
                     selectedOption = null; 
-                    selectElement.value = ""; // Сбрасываем значение, чтобы пользователь выбрал заново
+                    selectElement.value = ""; 
                     
                     actionBtn.textContent = 'Проверить';
                     actionBtn.className = 'btn';
                     actionBtn.onclick = null;
                 }
-                return; // Выходим из функции, так как логика dropdown обработана
+                return; 
+            }
+
+            // Проверка для текстового поля ввода
+            if (step.type === 'input') {
+                const inputElement = document.getElementById('text-input');
+                
+                // Сравниваем текст без учета регистра
+                if (selectedOption.toLowerCase() === step.answer.toLowerCase()) {
+                    rightSound.currentTime = 0; 
+                    rightSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
+
+                    isAnswerChecked = true;
+                    inputElement.classList.add('correct');
+                    inputElement.readOnly = true;
+                    
+                    actionBtn.textContent = 'Далее';
+                    actionBtn.className = 'btn active';
+                    actionBtn.onclick = nextStep;
+                } else {
+                    wrongSound.currentTime = 0;
+                    wrongSound.play().catch(e => console.log('Звук не воспроизведен: ', e));
+
+                    inputElement.classList.add('wrong');
+                    
+                    actionBtn.textContent = 'Проверить';
+                    actionBtn.className = 'btn';
+                    actionBtn.onclick = null;
+                }
+                return;
             }
 
             // Стандартная проверка для обычных тестов (quiz)
